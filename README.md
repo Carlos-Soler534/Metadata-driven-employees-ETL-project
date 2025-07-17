@@ -7,21 +7,19 @@ This project implements a modular and scalable ETL pipeline using PySpark and fo
 ## 🗂️ Project Structure
 
 project_root/
-│
-├── main.py # Main orchestrator script for the ETL pipeline
-├── config/
-│ └── metadata.json # Metadata configuration used to drive the ETL process
-│
-├── etl/
-│ ├── ingestion/
-│ │ └── DataIngestor.py # Contains logic to ingest raw data into Bronze layer
-│ │
-│ └── transformation/
-│ └── DataValidatorAndTransformer.py # Handles validations and transformations to Silver
-│
-├── utils/
-│ ├── logger_config.py # Centralized logger configuration
-│ └── etl_pipeline.log # (Optional) log file created during execution
+  main.py # Main orchestrator script for the ETL pipeline
+  create_gold_views.py #script to create gold tables from silver ones
+  config/
+    metadata.json # Metadata configuration used to drive the ETL process
+  etl/
+    ingestion/
+      DataIngestor.py # Contains logic to ingest raw data into Bronze layer
+    transformation/
+      DataValidatorAndTransformer.py # Handles validations and transformations to Silver
+
+  utils/
+    logger_config.py # Centralized logger configuration
+    etl_pipeline.log # (Optional) log file created during execution
 
 ## ⚙️ Features
 
