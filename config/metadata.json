@@ -1,0 +1,84 @@
+{
+  "dataflows": [
+    {
+      "name": "empleados_pipeline",
+      "sources": [
+        {
+          "name": "empleados_data_bronze",
+          "path": "/Volumes/az_core_sdg_pfdbkstr_training_dbks_catalog/proyectofinal_carlos/data/empleados_data_10K_registros",
+          "format": "delta",
+          "catalog": "az_core_sdg_pfdbkstr_training_dbks_catalog",
+          "schema": "proyectofinal_carlos"
+        }
+      ],
+      "field_validations": [
+        { "field": "Name", "rules": ["notNull", "notEmpty"] },
+        { "field": "Age", "rules": ["notNull", "nonNegative"] },
+        { "field": "Salario", "rules": ["notNull", "nonNegative"] },
+        { "field": "Incorporacion", "rules": ["isDate"] },
+        { "field": "Departamento", "rules": ["notNull"] },
+        { "field": "office", "rules": ["validOffice"] }
+      ],
+      "transformations": [
+        {
+          "name": "validacion_ok",
+          "type": "sql",
+          "params": {
+            "sql": "SELECT *, current_timestamp() as dt FROM az_core_sdg_pfdbkstr_training_dbks_catalog.proyectofinal_carlos.empleados_data_bronze WHERE Name IS NOT NULL AND Name != '' AND Age IS NOT NULL AND CAST(Age AS INT) >= 0 AND Salario IS NOT NULL AND CAST(Salario AS INT) >= 0 AND Incorporacion IS NOT NULL AND TO_DATE(Incorporacion, 'yyyy-MM-dd') IS NOT NULL AND Departamento IS NOT NULL AND office IN ('ESP', 'UK', 'FR', 'NT', 'BEL', 'ITA', 'GER')"
+          }
+        },
+        {
+          "name": "validacion_ko",
+          "type": "sql",
+          "params": {
+            "sql": "SELECT *, current_timestamp() as dt FROM az_core_sdg_pfdbkstr_training_dbks_catalog.proyectofinal_carlos.empleados_data_bronze WHERE NOT (Name IS NOT NULL AND Name != '' AND Age IS NOT NULL AND CAST(Age AS INT) >= 0 AND Salario IS NOT NULL AND CAST(Salario AS INT) >= 0 AND Incorporacion IS NOT NULL AND TO_DATE(Incorporacion, 'yyyy-MM-dd') IS NOT NULL AND Departamento IS NOT NULL AND office IN ('ESP', 'UK', 'FR', 'NT', 'BEL', 'ITA', 'GER'))"
+          }
+        },
+        {
+          "name": "empleados_data_silver",
+          "type": "sql",
+          "params": {
+            "sql": "SELECT *, CASE WHEN Salario < 40000 THEN 'estandar' WHEN Salario BETWEEN 40000 AND 80000 THEN 'medio' ELSE 'alto' END AS categoria_salario FROM az_core_sdg_pfdbkstr_training_dbks_catalog.proyectofinal_carlos.validacion_ok"
+          }
+        }
+      ],
+      "sinks": [
+        {
+          "catalog": "az_core_sdg_pfdbkstr_training_dbks_catalog",
+          "schema": "proyectofinal_carlos",
+          "name": "empleados_data_bronze",
+          "format": "delta",
+          "saveMode": "overwrite"
+        },
+        {
+          "catalog": "az_core_sdg_pfdbkstr_training_dbks_catalog",
+          "schema": "proyectofinal_carlos",
+          "name": "empleados_data_silver",
+          "format": "delta",
+          "saveMode": "overwrite"
+        },
+        {
+          "catalog": "az_core_sdg_pfdbkstr_training_dbks_catalog",
+          "schema": "proyectofinal_carlos",
+          "name": "empleados_data_ko",
+          "format": "delta",
+          "saveMode": "overwrite"
+        },
+        {
+          "catalog": "az_core_sdg_pfdbkstr_training_dbks_catalog",
+          "schema": "proyectofinal_carlos",
+          "name": "validacion_ko",
+          "format": "delta",
+          "saveMode": "overwrite"
+        },
+        {
+          "catalog": "az_core_sdg_pfdbkstr_training_dbks_catalog",
+          "schema": "proyectofinal_carlos",
+          "name": "validacion_ok",
+          "format": "delta",
+          "saveMode": "overwrite"
+        }               
+      ]
+    }
+  ]
+}
